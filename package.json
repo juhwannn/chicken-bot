@@ -3,16 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "prestart": "node deploy-commands.js",
     "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "prettier": {
-    "semi": true,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "useTabs": false,
-    "trailingComma": "es5",
-    "printWidth": 80
+    "dev": "nodemon server.js",
+    "deploy:commands": "node deploy-commands.js"
   },
   "author": "",
   "license": "ISC",
@@ -21,6 +15,7 @@
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jsdoc": "^4.0.4",
     "nodemon": "^3.1.9",
     "ws": "^8.18.1"
   }

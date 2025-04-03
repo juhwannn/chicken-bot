@@ -1,0 +1,32 @@
+{
+  "248614353081860097": {
+    "pubgPlayerName": "p_rimary",
+    "pubgPlayerId": "account.2621f8f1c520476bb232fab8a9fcf31e",
+    "playerAttributes": {
+      "shardId": "kakao",
+      "patchVersion": "",
+      "banType": "Innocent",
+      "clanId": "clan.2f40a5d4e96944e18da8577ba3ea94ad",
+      "name": "p_rimary",
+      "stats": null,
+      "titleId": "pubg"
+    },
+    "playerLinks": {
+      "self": "https://api.pubg.com/shards/kakao/players/account.2621f8f1c520476bb232fab8a9fcf31e",
+      "schema": ""
+    },
+    "pubgServer": "kakao",
+    "discordUser": {
+      "id": "248614353081860097",
+      "bot": false,
+      "system": false,
+      "flags": 0,
+      "username": "anjuhwan_",
+      "globalName": null,
+      "discriminator": "0",
+      "avatar": null,
+      "avatarDecoration": null,
+      "avatarDecorationData": null
+    }
+  }
+}
