@@ -25,6 +25,12 @@ const registerPlayer = async (interaction, pubgId, pubgServer) => {
 
   const playerData = await res.json();
 
+  if (playerData.errors[0].title === 'Not Found') {
+    await interaction.reply(`🚨 존재하지 않는 아이디입니다.`);
+
+    return;
+  }
+
   players[interaction?.user?.id] = {
     pubgPlayerName: playerData.data[0]?.attributes?.name,
     pubgPlayerId: playerData.data[0]?.id,
