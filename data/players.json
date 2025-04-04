@@ -28,5 +28,35 @@
       "avatarDecoration": null,
       "avatarDecorationData": null
     }
+  },
+  "280360474304839680": {
+    "pubgPlayerName": "mynameispray",
+    "pubgPlayerId": "account.6017e04616ad44acaa0ce2e2c5184ac1",
+    "playerAttributes": {
+      "shardId": "kakao",
+      "patchVersion": "",
+      "banType": "Innocent",
+      "clanId": "clan.2f40a5d4e96944e18da8577ba3ea94ad",
+      "name": "mynameispray",
+      "stats": null,
+      "titleId": "pubg"
+    },
+    "playerLinks": {
+      "self": "https://api.pubg.com/shards/kakao/players/account.6017e04616ad44acaa0ce2e2c5184ac1",
+      "schema": ""
+    },
+    "pubgServer": "kakao",
+    "discordUser": {
+      "id": "280360474304839680",
+      "bot": false,
+      "system": false,
+      "flags": 0,
+      "username": "allegro5364",
+      "globalName": null,
+      "discriminator": "0",
+      "avatar": null,
+      "avatarDecoration": null,
+      "avatarDecorationData": null
+    }
   }
 }

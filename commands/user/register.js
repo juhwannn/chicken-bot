@@ -13,7 +13,6 @@ const registerPlayer = async (interaction, pubgId, pubgServer) => {
 
   const res = await fetch(
     `${process.env.PUBG_HOST}/${pubgServer}/players?filter[playerNames]=${pubgId}`,
-
     {
       method: 'GET',
       headers: {
@@ -25,8 +24,10 @@ const registerPlayer = async (interaction, pubgId, pubgServer) => {
 
   const playerData = await res.json();
 
-  if (playerData.errors[0].title === 'Not Found') {
-    await interaction.reply(`🚨 존재하지 않는 아이디입니다.`);
+  if (playerData?.errors) {
+    if (playerData.errors[0].title === 'Not Found') {
+      await interaction.reply(`🚨 존재하지 않는 아이디입니다.`);
+    }
 
     return;
   }
