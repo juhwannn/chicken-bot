@@ -1,11 +1,24 @@
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import fs from 'node:fs/promises';
+import {
+  Collection,
+  Client,
+  GatewayIntentBits,
+  Events,
+  MessageFlags,
+} from 'discord.js';
+import { connectDB } from '#databases/index.js';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 /**
  * @see {@link https://discordjs.guide/slash-commands/response-methods.html}
  */
-require('dotenv').config();
-
-const fs = require('fs');
-const path = require('path');
-const { Collection, Client, GatewayIntentBits, Events } = require('discord.js');
 
 const client = new Client({
   intents: [
@@ -17,23 +30,23 @@ const client = new Client({
 
 client.commands = new Collection();
 
-const foldersPath = path.join(__dirname, 'commands');
-const commandFolders = fs.readdirSync(foldersPath);
+const foldersPath = join(__dirname, 'src/commands');
+const commandFolders = await fs.readdir(foldersPath);
 
 for (const folder of commandFolders) {
-  const commandsPath = path.join(foldersPath, folder);
-  const commandFiles = fs
-    .readdirSync(commandsPath)
-    .filter((file) => file.endsWith('.js'));
-  for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file);
-    const command = require(filePath);
+  const commandsPath = join(foldersPath, folder);
+  const commandFiles = (await fs.readdir(commandsPath)).filter((file) =>
+    file.endsWith('.js')
+  );
 
-    // Set a new item in the Collection with the key as the command name and the value as the exported module
-    if ('data' in command && 'execute' in command) {
-      client.commands.set(command.data.name, command);
+  for (const file of commandFiles) {
+    const filePath = join(commandsPath, file);
+    const { data, execute } = await import(`file://${filePath}`);
+
+    if (data && execute) {
+      client.commands.set(data.name, { data, execute });
     } else {
-      console.log(
+      console.warn(
         `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`
       );
     }
@@ -58,18 +71,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await command.execute(interaction);
   } catch (error) {
     console.error(error);
+    const replyPayload = {
+      content: 'There was an error while executing this command!',
+      flags: MessageFlags.Ephemeral,
+    };
+
     if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({
-        content: 'There was an error while executing this command!',
-        flags: MessageFlags.Ephemeral,
-      });
+      await interaction.followUp(replyPayload);
     } else {
-      await interaction.reply({
-        content: 'There was an error while executing this command!',
-        flags: MessageFlags.Ephemeral,
-      });
+      await interaction.reply(replyPayload);
     }
   }
 });
 
-client.login(process.env.DISCORD_TOKEN);
+connectDB().then(() => {
+  client.login(process.env.DISCORD_TOKEN);
+});

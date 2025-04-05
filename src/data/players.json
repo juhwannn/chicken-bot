@@ -1,18 +1,18 @@
 {
   "248614353081860097": {
-    "pubgPlayerName": "p_rimary",
-    "pubgPlayerId": "account.2621f8f1c520476bb232fab8a9fcf31e",
+    "pubgPlayerName": "mynameispray",
+    "pubgPlayerId": "account.6017e04616ad44acaa0ce2e2c5184ac1",
     "playerAttributes": {
+      "name": "mynameispray",
+      "stats": null,
+      "titleId": "pubg",
       "shardId": "kakao",
       "patchVersion": "",
       "banType": "Innocent",
-      "clanId": "clan.2f40a5d4e96944e18da8577ba3ea94ad",
-      "name": "p_rimary",
-      "stats": null,
-      "titleId": "pubg"
+      "clanId": ""
     },
     "playerLinks": {
-      "self": "https://api.pubg.com/shards/kakao/players/account.2621f8f1c520476bb232fab8a9fcf31e",
+      "self": "https://api.pubg.com/shards/kakao/players/account.6017e04616ad44acaa0ce2e2c5184ac1",
       "schema": ""
     },
     "pubgServer": "kakao",

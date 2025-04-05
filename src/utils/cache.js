@@ -14,13 +14,13 @@ setInterval(() => {
   }
 }, CACHE_TTL);
 
-function setCache(key, value) {
+export function setCache(key, value) {
   const currentTime = Date.now();
   cache[key] = value;
   cacheExpiry[key] = currentTime + CACHE_TTL; // 현재 시간에 TTL을 더하여 만료 시간 설정
 }
 
-function getCache(key) {
+export function getCache(key) {
   const currentTime = Date.now();
   if (cache[key] && cacheExpiry[key] > currentTime) {
     return cache[key];
@@ -31,8 +31,3 @@ function getCache(key) {
     return null;
   }
 }
-
-module.exports = {
-  setCache,
-  getCache,
-};

@@ -1,23 +1,12 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const {
+import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import {
   getCurrentSeason,
   getCurrentSeasonStats,
   getLastSeasonsId,
   getSeasonStats,
-} = require('../../utils/season');
-const fs = require('fs');
-const path = require('path');
-
-const playersFilePath = path.join(__dirname, '../../data/players.json');
-
-const getPlayer = (discordId) => {
-  let player = {};
-  if (fs.existsSync(playersFilePath)) {
-    const data = fs.readFileSync(playersFilePath, 'utf8');
-    player = JSON.parse(data);
-  }
-  return player[discordId];
-};
+} from '#utils/season.js';
+import { findPlayerByDiscordId } from '#databases/repositories/player.js';
+import { sendErrorWithSpoiler } from '#utils/discord.js';
 
 const excludeUnplayedModes = (games) => {
   return Object.fromEntries(
@@ -34,14 +23,22 @@ const modeTranslations = {
   'squad-fpp': '스쿼드 (1인칭)',
 };
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('내정보')
-    .setDescription(
-      '디스코드 아이디에 등록된 배틀그라운드 아이디를 가져옵니다.'
-    ),
-  async execute(interaction) {
-    const player = getPlayer(interaction.user.id);
+export const data = new SlashCommandBuilder()
+  .setName('내정보')
+  .setDescription('디스코드 아이디에 등록된 배틀그라운드 아이디를 가져옵니다.');
+
+export async function execute(interaction) {
+  try {
+    await interaction.deferReply();
+
+    const player = findPlayerByDiscordId(interaction.user.id);
+
+    if (!player) {
+      const error = new Error('not exist player');
+      error.code = 404;
+
+      throw error;
+    }
 
     const embed = new EmbedBuilder()
       .addFields(
@@ -60,7 +57,7 @@ module.exports = {
       .setColor(0xffffff)
       .setThumbnail(interaction.user.displayAvatarURL());
 
-    await interaction.reply({
+    await interaction.followUp({
       embeds: [embed],
     });
 
@@ -98,7 +95,10 @@ module.exports = {
           ).toFixed(2),
           roundsPlayed:
             seasonStats.data[0].attributes.gameModeStats[mode].roundsPlayed,
-            
+          avgDamage: (
+            seasonStats.data[0].attributes.gameModeStats[mode].damageDealt /
+            seasonStats.data[0].attributes.gameModeStats[mode].roundsPlayed
+          ).toFixed(2),
         });
       }
       const chartConfig = {
@@ -113,6 +113,7 @@ module.exports = {
           ],
           datasets: [
             {
+              type: 'line',
               label: '평균 K + A / M',
               data: [
                 seasonsStats[0].KAM,
@@ -128,21 +129,56 @@ module.exports = {
                 '#FF6384',
                 '#FF6384',
               ],
-              // '#36A2EB', '#FFCE56', '#4BC0C0'],
+              yAxisID: 'y-axis-1',
             },
             {
-              type: 'line',
+              type: 'bar',
               label: '평균 딜량',
               borderColor: 'rgb(54, 162, 235)',
               borderWidth: 2,
               fill: false,
               data: [
-                seasonsStats[0].
+                seasonsStats[0].avgDamage,
+                seasonsStats[1].avgDamage,
+                seasonsStats[2].avgDamage,
+                seasonsStats[3].avgDamage,
+                seasonsStats[4].avgDamage,
               ],
+              yAxisID: 'y-axis-2',
             },
           ],
         },
         options: {
+          responsive: true,
+          scales: {
+            yAxes: [
+              {
+                id: 'y-axis-1',
+                position: 'left',
+                ticks: {
+                  beginAtZero: true,
+                },
+                scaleLabel: {
+                  display: true,
+                  labelString: '평균 K + A / M',
+                },
+              },
+              {
+                id: 'y-axis-2',
+                position: 'right',
+                ticks: {
+                  beginAtZero: true,
+                },
+                scaleLabel: {
+                  display: true,
+                  labelString: '평균 딜량',
+                },
+                gridLines: {
+                  drawOnChartArea: false,
+                },
+              },
+            ],
+          },
           title: {
             display: true,
             text: '시즌 별 스탯',
@@ -200,5 +236,21 @@ module.exports = {
 
       await interaction.followUp({ embeds: [embed] });
     }
-  },
-};
+  } catch (error) {
+    if (error.code === 429) {
+      await sendErrorWithSpoiler(
+        interaction,
+        error,
+        '배틀그라운드 API 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.'
+      );
+    } else if (error.code === 404 && error.message === 'not exist player') {
+      await sendErrorWithSpoiler(
+        interaction,
+        error,
+        '디스코드 아이디에 등록된 배틀그라운드 아이디가 없습니다.'
+      );
+    } else {
+      await sendErrorWithSpoiler(interaction, error);
+    }
+  }
+}

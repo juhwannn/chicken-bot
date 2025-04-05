@@ -1,6 +1,6 @@
-const { setCache, getCache } = require('./cache');
+import { setCache, getCache } from '#utils/cache.js';
 
-async function getCurrentSeason(pubgServer = 'kakao') {
+export async function getCurrentSeason(pubgServer = 'kakao') {
   try {
     let seasons;
     if (getCache('seasons')) {
@@ -30,7 +30,7 @@ async function getCurrentSeason(pubgServer = 'kakao') {
   }
 }
 
-async function getCurrentSeasonStats(
+export async function getCurrentSeasonStats(
   seasonId,
   pubgPlayerId,
   pubgServer = 'kakao'
@@ -54,13 +54,12 @@ async function getCurrentSeasonStats(
   }
 }
 
-async function getLastSeasonsId(pubgServer = 'kakao', count = 5) {
+export async function getLastSeasonsId(pubgServer = 'kakao', count = 5) {
   try {
-    let seasons;
+    let seasons = getCache('seasons');
+    console.log(' seasons =======> ', seasons);
 
-    if (getCache('seasons')) {
-      seasons = getCache('seasons');
-    } else {
+    if (!seasons) {
       const res = await fetch(
         `${process.env.PUBG_HOST}/${pubgServer}/seasons`,
         {
@@ -71,6 +70,15 @@ async function getLastSeasonsId(pubgServer = 'kakao', count = 5) {
           },
         }
       );
+      console.log(' res.status =======> ', res.status);
+
+      if (res.status === 429) {
+        const error = new Error('API rate limit exceeded');
+        error.code = 429;
+
+        throw error;
+      }
+
       seasons = await res.json();
       setCache('seasons', seasons);
     }
@@ -93,7 +101,7 @@ async function getLastSeasonsId(pubgServer = 'kakao', count = 5) {
   }
 }
 
-async function getSeasonStats(pubgServer, seasonId, mode, pubgPlayerId) {
+export async function getSeasonStats(pubgServer, seasonId, mode, pubgPlayerId) {
   try {
     const res = await fetch(
       `${process.env.PUBG_HOST}/${pubgServer}/seasons/${seasonId}/gameMode/${mode}/players?filter[playerIds]=${pubgPlayerId}`,
@@ -106,15 +114,15 @@ async function getSeasonStats(pubgServer, seasonId, mode, pubgPlayerId) {
       }
     );
 
+    if (res.status === 429) {
+      const error = new Error('API rate limit exceeded');
+      error.code = 429;
+
+      throw error;
+    }
+
     return await res.json();
   } catch (error) {
     throw error;
   }
 }
-
-module.exports = {
-  getCurrentSeason,
-  getCurrentSeasonStats,
-  getLastSeasonsId,
-  getSeasonStats,
-};
