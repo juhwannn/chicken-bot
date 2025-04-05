@@ -1,9 +1,9 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { findPlayerByDiscordId } from '#databases/repositories/player.js';
 import { Player } from '#databases/models/player.js';
 
 const registerPlayer = async (interaction, pubgId, pubgServer) => {
   const players = await findPlayerByDiscordId(interaction.user.id);
-  console.log(' players =======> ', players);
 
   if (players) {
     await interaction.reply(
@@ -33,13 +33,14 @@ const registerPlayer = async (interaction, pubgId, pubgServer) => {
     }
 
     await Player.create({
+      discordId: interaction.user.id,
       pubgPlayerName: playerData.data[0]?.attributes?.name,
       pubgPlayerId: playerData.data[0]?.id,
       playerAttributes: playerData.data[0].attributes,
       playerLinks: playerData.data[0].links,
       pubgServer,
       discordUser: { ...interaction?.user },
-    }).save();
+    });
 
     await interaction.reply(
       `✅ ${interaction?.user?.username}님이 배틀그라운드 ${pubgServer}서버 아이디 ${pubgId}를 등록하셨습니다.`
@@ -81,8 +82,4 @@ export async function execute(interaction) {
   }
 
   await registerPlayer(interaction, pubgId, pubgServer);
-
-  await interaction.reply(
-    `✅ ${interaction?.user?.username}님이 배틀그라운드 ${pubgServer}서버 아이디 ${pubgId}를 등록하셨습니다.`
-  );
 }
