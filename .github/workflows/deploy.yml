@@ -24,8 +24,17 @@ jobs:
             cd ~/discord-bot
             git pull origin main
             npm install
-            pm2 restart all || pm2 start index.js --name "discord-bot"
+
+            # .env 파일 생성
+            cat <<EOT > .env
+            NODE_ENV=production
+            MONGO_URL=${{ secrets.MONGO_URL }}
+            DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
+            CLIENT_ID=${{ secrets.CLIENT_ID }}
+            GUILD_ID=${{ secrets.GUILD_ID }}
+            PUBG_API_KEY=${{ secrets.PUBG_API_KEY }}
+            PUBG_HOST=${{ secrets.PUBG_HOST }}
+            EOT
+
+            pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
           EOF
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
