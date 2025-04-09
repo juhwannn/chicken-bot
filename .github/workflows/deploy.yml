@@ -26,47 +26,47 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
           chmod 600 private_key.pem
 
-          - name: EC2에 코드 배포
-          run: |
-            ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-              set -e
+      - name: EC2에 코드 배포
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e
 
-              cd ~/discord-bot || {
-                echo "프로젝트 디렉토리가 없습니다. 클론을 시도합니다.";
-                git clone https://github.com/your-repo-url.git ~/discord-bot
-                cd ~/discord-bot
-              }
+            cd ~/discord-bot || {
+              echo "프로젝트 디렉토리가 없습니다. 클론을 시도합니다.";
+              git clone https://github.com/your-repo-url.git ~/discord-bot
+              cd ~/discord-bot
+            }
 
-              git pull origin main
+            git pull origin main
 
-              export NVM_DIR="$HOME/.nvm"
-              [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
-              if ! command -v node > /dev/null 2>&1; then
-                echo "Node.js가 설치되지 않았습니다. 설치를 진행합니다."
-                curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-                sudo apt-get install -y nodejs
-              fi
+            if ! command -v node > /dev/null 2>&1; then
+              echo "Node.js가 설치되지 않았습니다. 설치를 진행합니다."
+              curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            fi
 
-              node -v
-              npm -v
+            node -v
+            npm -v
 
-              npm install
+            npm install
 
-              cat > .env <<EOT
-              NODE_ENV=production
-              MONGO_URL=${{ secrets.MONGO_URL }}
-              DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
-              CLIENT_ID=${{ secrets.CLIENT_ID }}
-              GUILD_ID=${{ secrets.GUILD_ID }}
-              PUBG_API_KEY=${{ secrets.PUBG_API_KEY }}
-              PUBG_HOST=${{ secrets.PUBG_HOST }}
-              EOT
+            cat > .env <<EOT
+            NODE_ENV=production
+            MONGO_URL=${{ secrets.MONGO_URL }}
+            DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
+            CLIENT_ID=${{ secrets.CLIENT_ID }}
+            GUILD_ID=${{ secrets.GUILD_ID }}
+            PUBG_API_KEY=${{ secrets.PUBG_API_KEY }}
+            PUBG_HOST=${{ secrets.PUBG_HOST }}
+            EOT
 
-              if ! command -v pm2 > /dev/null 2>&1; then
-                echo "PM2가 설치되지 않았습니다. 설치를 진행합니다."
-                npm install -g pm2
-              fi
+            if ! command -v pm2 > /dev/null 2>&1; then
+              echo "PM2가 설치되지 않았습니다. 설치를 진행합니다."
+              npm install -g pm2
+            fi
 
-              pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
-            EOF
+            pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
+          EOF
