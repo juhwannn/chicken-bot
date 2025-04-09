@@ -10,6 +10,16 @@ async function findPlayerByDiscordId(discordId) {
   }
 }
 
+async function findPlayerByDiscordIds(discordIds) {
+  try {
+    const players = await Player.find({ discordId: { $in: discordIds } });
+
+    return players;
+  } catch (error) {
+    throw error;
+  }
+}
+
 async function createPlayer(data = {}) {
   try {
     const player = new Player(data);
@@ -20,4 +30,19 @@ async function createPlayer(data = {}) {
   }
 }
 
-export { findPlayerByDiscordId, createPlayer };
+async function getAllPlayers() {
+  try {
+    const players = await Player.find();
+
+    return players;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export {
+  findPlayerByDiscordId,
+  findPlayerByDiscordIds,
+  createPlayer,
+  getAllPlayers,
+};

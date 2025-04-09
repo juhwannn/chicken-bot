@@ -6,7 +6,8 @@
     "prestart": "node deploy-commands.js",
     "start": "node server.js",
     "dev": "NODE_ENV=development nodemon server.js",
-    "deploy:commands": "node deploy-commands.js"
+    "deploy:commands": "node deploy-commands.js",
+    "start-cron": "node cronjobs.js"
   },
   "type": "module",
   "imports": {
@@ -25,6 +26,7 @@
     "express": "^4.21.2",
     "jsdoc": "^4.0.4",
     "mongoose": "^8.13.2",
+    "node-cron": "^3.0.3",
     "nodemon": "^3.1.9",
     "quickchart-js": "^3.1.3",
     "ws": "^8.18.1"

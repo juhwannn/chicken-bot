@@ -1,6 +1,92 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import { findPlayerByDiscordId } from '#databases/repositories/player.js';
 import { Player } from '#databases/models/player.js';
+import { Match } from '#databases/models/match.js';
+import { Stats } from '#databases/models/stats.js';
+
+const registerPlayerRecentMatch = async (interaction, pubgServer) => {
+  try {
+    const { pubgPlayerId: pubgId } = await findPlayerByDiscordId(
+      interaction.user.id
+    );
+    const res = await fetch(
+      `${process.env.PUBG_HOST}/${pubgServer}/players/${pubgId}`,
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/vnd.api+json',
+          Authorization: `Bearer ${process.env.PUBG_API_KEY}`,
+        },
+      }
+    );
+    const { data } = await res.json();
+
+    const matchDataList = data.relationships.matches?.data.map((match) => {
+      if (match.type === 'match') {
+        return {
+          discordId: interaction.user.id,
+          pubgPlayerName: data.attributes.name,
+          pubgPlayerId: pubgId,
+          matchId: match.id,
+        };
+      }
+    });
+
+    console.log(' matchDataList =======> ', matchDataList);
+
+    await Match.insertMany(matchDataList, {
+      ordered: false,
+    });
+
+    for (const matchData of matchDataList) {
+      const res = await fetch(
+        `${process.env.PUBG_HOST}/${pubgServer}/matches/${matchData.matchId}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/vnd.api+json',
+            Authorization: `Bearer ${process.env.PUBG_API_KEY}`,
+          },
+        }
+      );
+      const resData = await res.json();
+      console.log(' resData =======> ', resData);
+
+      const statsData = resData.included.find((player) => {
+        console.log(' player.attributes =======> ', player.attributes);
+
+        return player.type === 'participant' && player.attributes === pubgId;
+      });
+
+      console.log(' statsData =======> ', statsData);
+
+      await Stats.create({
+        matchId: matchData.matchId,
+        discordId: interaction.user.id,
+        playerId: pubgId,
+        kill: statsData.attributes.stats.kills,
+        damage: statsData.attributes.stats.damageDealt,
+        dbno: statsData.attributes.stats.DBNOs,
+        headshoKill: statsData.attributes.stats.headshotKills,
+        assists: statsData.attributes.stats.assists,
+        boosts: statsData.attributes.stats.boosts,
+        heals: statsData.attributes.stats.heals,
+        killPlace: statsData.attributes.stats.killPlace,
+        killStreaks: statsData.attributes.stats.killStreaks,
+        longestKill: statsData.attributes.stats.longestKill,
+        revives: statsData.attributes.stats.revives,
+      });
+      await Stats.insertMany(statsData, {
+        ordered: false,
+      });
+    }
+
+    // stats create
+    await interaction.followUp('최근 경기가 등록 되었습니다.');
+  } catch (error) {
+    throw error;
+  }
+};
 
 const registerPlayer = async (interaction, pubgId, pubgServer) => {
   const players = await findPlayerByDiscordId(interaction.user.id);
@@ -82,4 +168,5 @@ export async function execute(interaction) {
   }
 
   await registerPlayer(interaction, pubgId, pubgServer);
+  await registerPlayerRecentMatch(interaction, pubgServer);
 }

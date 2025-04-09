@@ -10,7 +10,7 @@ export async function execute(interaction) {
   try {
     await interaction.deferReply();
 
-    const player = findPlayerByDiscordId(interaction.user.id);
+    const player = await findPlayerByDiscordId(interaction.user.id);
 
     if (!player) {
       const error = new Error('not exist player');
@@ -28,8 +28,10 @@ export async function execute(interaction) {
         },
       }
     );
+
     const data = await res.json();
     console.log(' data =======> ', data.data.relationships.matches);
+
     await interaction.followUp(
       `최근 경기 수: ${data.data.relationships.matches.data.length}`
     );
