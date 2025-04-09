@@ -1,25 +1,5 @@
 import mongoose from 'mongoose';
 
-/*
-  DBNOs: 0,
-  assists: 0,
-  boosts: 0,
-  damageDealt: 399.99997,
-  headshotKills: 0,
-  heals: 0,
-  killPlace: 1,
-  killStreaks: 1,
-  kills: 2,
-  longestKill: 18.25155,
-  name: 'p_rimary',
-  playerId: 'account.2621f8f1c520476bb232fab8a9fcf31e',
-  revives: 0,
-  rideDistance: 0,
-  roadKills: 0,
-  teamKills: 0,
-  timeSurvived: 82,
-  vehicleDestroys: 0,
-*/
 const statsSchema = new mongoose.Schema(
   {
     matchId: {
@@ -31,8 +11,7 @@ const statsSchema = new mongoose.Schema(
       required: true,
     },
     playerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Player',
+      type: String,
       required: true,
     },
     kill: {
@@ -82,5 +61,7 @@ const statsSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+statsSchema.index({ matchId: 1, playerId: 1 }, { unique: true });
 
 export const Stats = mongoose.model('Stats', statsSchema);

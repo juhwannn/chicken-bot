@@ -4,6 +4,8 @@ import { Player } from '#databases/models/player.js';
 import { Match } from '#databases/models/match.js';
 import { Stats } from '#databases/models/stats.js';
 
+const registerPlayerRecentStats = async (interaction, pubgServer) => {};
+
 const registerPlayerRecentMatch = async (interaction, pubgServer) => {
   try {
     const { pubgPlayerId: pubgId } = await findPlayerByDiscordId(
@@ -32,11 +34,20 @@ const registerPlayerRecentMatch = async (interaction, pubgServer) => {
       }
     });
 
-    console.log(' matchDataList =======> ', matchDataList);
-
-    await Match.insertMany(matchDataList, {
-      ordered: false,
-    });
+    try {
+      await Match.insertMany(matchDataList, {
+        ordered: false,
+      });
+    } catch (err) {
+      if (err.code === 11000 || err.writeErrors) {
+        console.warn(
+          '⚠️ 일부 중복된 Match 문서가 존재합니다. 계속 진행합니다.'
+        );
+      } else {
+        console.error('❌ Match insertMany 실패:', err);
+        throw err; // 중복 외 에러는 그대로 throw
+      }
+    }
 
     for (const matchData of matchDataList) {
       const res = await fetch(
@@ -50,38 +61,43 @@ const registerPlayerRecentMatch = async (interaction, pubgServer) => {
         }
       );
       const resData = await res.json();
-      console.log(' resData =======> ', resData);
 
       const statsData = resData.included.find((player) => {
-        console.log(' player.attributes =======> ', player.attributes);
-
-        return player.type === 'participant' && player.attributes === pubgId;
+        return (
+          player.type === 'participant' &&
+          player.attributes.stats.playerId === pubgId
+        );
       });
 
-      console.log(' statsData =======> ', statsData);
-
-      await Stats.create({
-        matchId: matchData.matchId,
-        discordId: interaction.user.id,
-        playerId: pubgId,
-        kill: statsData.attributes.stats.kills,
-        damage: statsData.attributes.stats.damageDealt,
-        dbno: statsData.attributes.stats.DBNOs,
-        headshoKill: statsData.attributes.stats.headshotKills,
-        assists: statsData.attributes.stats.assists,
-        boosts: statsData.attributes.stats.boosts,
-        heals: statsData.attributes.stats.heals,
-        killPlace: statsData.attributes.stats.killPlace,
-        killStreaks: statsData.attributes.stats.killStreaks,
-        longestKill: statsData.attributes.stats.longestKill,
-        revives: statsData.attributes.stats.revives,
-      });
-      await Stats.insertMany(statsData, {
-        ordered: false,
-      });
+      try {
+        await Stats.create({
+          matchId: matchData.matchId,
+          discordId: interaction.user.id,
+          playerId: pubgId,
+          kill: statsData.attributes.stats.kills,
+          damage: statsData.attributes.stats.damageDealt,
+          dbno: statsData.attributes.stats.DBNOs,
+          headshoKill: statsData.attributes.stats.headshotKills,
+          assists: statsData.attributes.stats.assists,
+          boosts: statsData.attributes.stats.boosts,
+          heals: statsData.attributes.stats.heals,
+          killPlace: statsData.attributes.stats.killPlace,
+          killStreaks: statsData.attributes.stats.killStreaks,
+          longestKill: statsData.attributes.stats.longestKill,
+          revives: statsData.attributes.stats.revives,
+        });
+      } catch (error) {
+        if (error.code === 11000 || error.writeErrors) {
+          console.warn(
+            '⚠️ 일부 중복된 Stats 문서가 존재합니다. 계속 진행합니다.'
+          );
+        } else {
+          console.error('❌ Stats create 실패:', error);
+          throw error; // 중복 외 에러는 그대로 throw
+        }
+      }
     }
 
-    // stats create
     await interaction.followUp('최근 경기가 등록 되었습니다.');
   } catch (error) {
     throw error;
