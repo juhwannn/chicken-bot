@@ -1,103 +1,19 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import { findPlayerByDiscordId } from '#databases/repositories/player.js';
+import {
+  insertManyMatchByPlayer,
+  insertManyStatsByMatchIdList,
+} from '#databases/repositories/match.js';
 import { Player } from '#databases/models/player.js';
-import { Match } from '#databases/models/match.js';
-import { Stats } from '#databases/models/stats.js';
 
-const registerPlayerRecentStats = async (interaction, pubgServer) => {};
-
-const registerPlayerRecentMatch = async (interaction, pubgServer) => {
+const registerPlayerRecentMatch = async (interaction) => {
   try {
-    const { pubgPlayerId: pubgId } = await findPlayerByDiscordId(
-      interaction.user.id
-    );
-    const res = await fetch(
-      `${process.env.PUBG_HOST}/${pubgServer}/players/${pubgId}`,
-      {
-        method: 'GET',
-        headers: {
-          Accept: 'application/vnd.api+json',
-          Authorization: `Bearer ${process.env.PUBG_API_KEY}`,
-        },
-      }
-    );
-    const { data } = await res.json();
+    const player = await findPlayerByDiscordId(interaction.user.id);
 
-    const matchDataList = data.relationships.matches?.data.map((match) => {
-      if (match.type === 'match') {
-        return {
-          discordId: interaction.user.id,
-          pubgPlayerName: data.attributes.name,
-          pubgPlayerId: pubgId,
-          matchId: match.id,
-        };
-      }
-    });
+    const matchList = await insertManyMatchByPlayer(player);
+    await insertManyStatsByMatchIdList(matchList, player);
 
-    try {
-      await Match.insertMany(matchDataList, {
-        ordered: false,
-      });
-    } catch (err) {
-      if (err.code === 11000 || err.writeErrors) {
-        console.warn(
-          '⚠️ 일부 중복된 Match 문서가 존재합니다. 계속 진행합니다.'
-        );
-      } else {
-        console.error('❌ Match insertMany 실패:', err);
-        throw err; // 중복 외 에러는 그대로 throw
-      }
-    }
-
-    for (const matchData of matchDataList) {
-      const res = await fetch(
-        `${process.env.PUBG_HOST}/${pubgServer}/matches/${matchData.matchId}`,
-        {
-          method: 'GET',
-          headers: {
-            Accept: 'application/vnd.api+json',
-            Authorization: `Bearer ${process.env.PUBG_API_KEY}`,
-          },
-        }
-      );
-      const resData = await res.json();
-
-      const statsData = resData.included.find((player) => {
-        return (
-          player.type === 'participant' &&
-          player.attributes.stats.playerId === pubgId
-        );
-      });
-
-      try {
-        await Stats.create({
-          matchId: matchData.matchId,
-          discordId: interaction.user.id,
-          playerId: pubgId,
-          kill: statsData.attributes.stats.kills,
-          damage: statsData.attributes.stats.damageDealt,
-          dbno: statsData.attributes.stats.DBNOs,
-          headshoKill: statsData.attributes.stats.headshotKills,
-          assists: statsData.attributes.stats.assists,
-          boosts: statsData.attributes.stats.boosts,
-          heals: statsData.attributes.stats.heals,
-          killPlace: statsData.attributes.stats.killPlace,
-          killStreaks: statsData.attributes.stats.killStreaks,
-          longestKill: statsData.attributes.stats.longestKill,
-          revives: statsData.attributes.stats.revives,
-        });
-      } catch (error) {
-        if (error.code === 11000 || error.writeErrors) {
-          console.warn(
-            '⚠️ 일부 중복된 Stats 문서가 존재합니다. 계속 진행합니다.'
-          );
-        } else {
-          console.error('❌ Stats create 실패:', error);
-          throw error; // 중복 외 에러는 그대로 throw
-        }
-      }
-    }
-
+    // stats create
     await interaction.followUp('최근 경기가 등록 되었습니다.');
   } catch (error) {
     throw error;
@@ -184,5 +100,5 @@ export async function execute(interaction) {
   }
 
   await registerPlayer(interaction, pubgId, pubgServer);
-  await registerPlayerRecentMatch(interaction, pubgServer);
+  await registerPlayerRecentMatch(interaction);
 }
