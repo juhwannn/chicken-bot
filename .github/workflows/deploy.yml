@@ -28,7 +28,7 @@ jobs:
 
       - name: EC2에 코드 배포
         run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
             set -e
 
             cd ~/discord-bot || {
@@ -53,20 +53,15 @@ jobs:
 
             npm install
 
-            cat > .env <<EOT
+            cat <<EOT > .env
             NODE_ENV=production
-            MONGO_URL=${{ secrets.MONGO_URL }}
+            MONGODB_URI=${{ secrets.MONGO_URL }}
             DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
             CLIENT_ID=${{ secrets.CLIENT_ID }}
             GUILD_ID=${{ secrets.GUILD_ID }}
             PUBG_API_KEY=${{ secrets.PUBG_API_KEY }}
             PUBG_HOST=${{ secrets.PUBG_HOST }}
             EOT
-
-            if ! command -v pm2 > /dev/null 2>&1; then
-              echo "PM2가 설치되지 않았습니다. 설치를 진행합니다."
-              npm install -g pm2
-            fi
 
             pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
           EOF

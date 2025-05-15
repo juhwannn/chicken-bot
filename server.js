@@ -94,26 +94,33 @@ client.on(Events.InteractionCreate, async (interaction) => {
 client.on('interactionCreate', async (interaction) => {
   try {
     if (!interaction.isUserSelectMenu()) return;
+    await interaction.deferReply();
 
     if (interaction.customId === 'usersStatistics') {
       const selectedUsers = interaction.users;
-      const selectedUserIds = interaction.values;
-      const names = selectedUsers
-        .map((user) => user.globalName ?? user.username)
-        .join(', ');
+      // const selectedUserIds = interaction.values;
+      const selectedUserIds = [
+        '248614353081860097',
+        '280360474304839680',
+        '405199908589535254',
+        '383664125164912641',
+      ];
+      // const names = selectedUsers
+      //   .map((user) => user.globalName ?? user.username)
+      //   .join(', ');
 
-      await interaction.update({
-        content: `✅ 선택된 유저: ${names}`,
-        components: [],
-      });
+      // await interaction.update({
+      //   content: `✅ 선택된 유저: ${names}`,
+      //   components: [],
+      // });
 
-      for (const selectedUserId of selectedUserIds) {
-        const player = await Player.findOne({
-          discordId: selectedUserId,
-        });
+      // for (const selectedUserId of selectedUserIds) {
+      //   const player = await Player.findOne({
+      //     discordId: selectedUserId,
+      //   });
 
-        await insertManyMatchByPlayer(player);
-      }
+      //   await insertManyMatchByPlayer(player);
+      // }
 
       const matchIdList = await Match.aggregate([
         {
@@ -137,9 +144,6 @@ client.on('interactionCreate', async (interaction) => {
         { $limit: 20 },
         { $project: { _id: 0, matchId: '$_id' } },
       ]);
-
-      console.log(' recentCommonMatches =======> ', matchIdList);
-      console.log(' recentCommonMatches =======> ', matchIdList.length);
 
       const test = matchIdList.map((match) => match.matchId);
       const stats = await Stats.aggregate([
@@ -206,9 +210,7 @@ client.on('interactionCreate', async (interaction) => {
 
       const chart = new QuickChart();
       chart.setVersion('3');
-
       chart.setBackgroundColor('#1C1C1C');
-
       chart.setConfig({
         type: 'bar',
         data: {

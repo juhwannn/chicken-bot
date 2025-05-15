@@ -30,9 +30,7 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction) {
   try {
     await interaction.deferReply();
-
-    const player = findPlayerByDiscordId(interaction.user.id);
-
+    const player = await findPlayerByDiscordId(interaction.user.id);
     if (!player) {
       const error = new Error('not exist player');
       error.code = 404;
@@ -56,22 +54,26 @@ export async function execute(interaction) {
       )
       .setColor(0xffffff)
       .setThumbnail(interaction.user.displayAvatarURL());
+    console.log('5est');
 
     await interaction.followUp({
       embeds: [embed],
     });
-
+    console.log('5estㄷㄷ');
     const currentSeasonId = await getCurrentSeason(player.pubgServer);
+
     const currentSeasonStats = await getCurrentSeasonStats(
       currentSeasonId,
       player.pubgPlayerId,
       player.pubgServer
     );
+
     const lastFiveSeasonIds = await getLastSeasonsId(player.pubgServer, 5);
+    console.log(' lastFiveSeasonIds =======> ', lastFiveSeasonIds);
+
     const gameStats = excludeUnplayedModes(
       currentSeasonStats.data.attributes.gameModeStats
     );
-
     for (const mode of Object.keys(gameStats)) {
       const stats = gameStats[mode];
       const title = modeTranslations[mode] || mode;
@@ -190,7 +192,7 @@ export async function execute(interaction) {
         JSON.stringify(chartConfig)
       )}`;
 
-      const embed = new EmbedBuilder()
+      const chartEmbed = new EmbedBuilder()
         .setColor(0x0099ff)
         .setTitle(`**${player.pubgPlayerName}님 ${title} 전적 정보**`)
         .setDescription(`이번 시즌 ${title} 게임 전적입니다.`)
@@ -234,7 +236,7 @@ export async function execute(interaction) {
         )
         .setImage(chartUrl);
 
-      await interaction.followUp({ embeds: [embed] });
+      await interaction.followUp({ embeds: [chartEmbed] });
     }
   } catch (error) {
     if (error.code === 429) {

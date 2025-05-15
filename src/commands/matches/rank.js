@@ -5,8 +5,8 @@ import {
 } from 'discord.js';
 
 export const data = new SlashCommandBuilder()
-  .setName('test')
-  .setDescription('최근 경기를 조회합니다. (최대 20개)');
+  .setName('랭킹')
+  .setDescription('최근 경기에서 랭킹을 조회합니다.');
 
 export async function execute(interaction) {
   try {
@@ -14,7 +14,7 @@ export async function execute(interaction) {
       .setCustomId('usersStatistics')
       .setPlaceholder('Select multiple users.')
       .setMinValues(1)
-      .setMaxValues(10);
+      .setMaxValues(4);
 
     const row1 = new ActionRowBuilder().addComponents(userSelect);
 
