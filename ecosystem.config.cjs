@@ -12,7 +12,6 @@ module.exports = {
         MONGO_URL: process.env.MONGO_URL, // MongoDB URL
         DISCORD_TOKEN: process.env.DISCORD_TOKEN, // Discord 봇 토큰
         CLIENT_ID: process.env.CLIENT_ID, // Discord 클라이언트 ID
-        GUILD_ID: process.env.GUILD_ID, // Discord 서버 ID
         PUBG_API_KEY: process.env.PUBG_API_KEY, // PUBG API 키
         PUBG_HOST: process.env.PUBG_HOST, // PUBG API 호스트
       },

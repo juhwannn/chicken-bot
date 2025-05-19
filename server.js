@@ -96,7 +96,7 @@ client.on('interactionCreate', async (interaction) => {
     if (!interaction.isUserSelectMenu()) return;
     await interaction.deferReply();
 
-    if (interaction.customId === 'usersStatistics') {
+    if (interaction.customId === 'rank') {
       const selectedUsers = interaction.users;
       // const selectedUserIds = interaction.values;
       const selectedUserIds = [

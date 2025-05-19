@@ -6,7 +6,8 @@
     "prestart": "node deploy-commands.js",
     "start": "node server.js",
     "dev": "NODE_ENV=development nodemon server.js",
-    "deploy:commands": "node deploy-commands.js",
+    "deploy:dev": "NODE_ENV=development node deploy-commands.js",
+    "deploy:prod": "NODE_ENV=production  node deploy-commands.js",
     "start-cron": "node cronjobs.js"
   },
   "type": "module",

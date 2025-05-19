@@ -7,7 +7,7 @@ import path from 'node:path';
 
 dotenv.config();
 
-const { CLIENT_ID, GUILD_ID, DISCORD_TOKEN } = process.env;
+const { NODE_ENV, GUILD_ID, CLIENT_ID, DISCORD_TOKEN } = process.env;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,17 +18,14 @@ const __dirname = dirname(__filename);
  * @see {@link https://discordjs.guide/creating-your-bot/command-deployment.html#guild-commands}
  */
 const commands = [];
-// Grab all the command folders from the commands directory you created earlier
 const foldersPath = path.join(__dirname, './src/commands');
 const commandFolders = fs.readdirSync(foldersPath);
 
 for (const folder of commandFolders) {
-  // Grab all the command files from the commands directory you created earlier
   const commandsPath = path.join(foldersPath, folder);
   const commandFiles = fs
     .readdirSync(commandsPath)
     .filter((file) => file.endsWith('.js'));
-  // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
   for (const file of commandFiles) {
     const filePath = join(commandsPath, file);
     const command = await import(filePath);
@@ -43,27 +40,32 @@ for (const folder of commandFolders) {
   }
 }
 
-// Construct and prepare an instance of the REST module
 const rest = new REST().setToken(DISCORD_TOKEN);
 
-// and deploy your commands!
 (async () => {
   try {
-    console.log(
-      `Started refreshing ${commands.length} application (/) commands.`
-    );
+    if (NODE_ENV === 'development') {
+      await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {
+        body: commands,
+      });
 
-    // The put method is used to fully refresh all commands in the guild with the current set
-    const data = await rest.put(
-      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-      { body: commands }
-    );
+      console.log(
+        'Successfully reloaded application (/) commands. on Development'
+      );
+    } else if (NODE_ENV === 'production') {
+      await rest.put(Routes.applicationCommands(CLIENT_ID), {
+        body: commands,
+      });
 
-    console.log(
-      `Successfully reloaded ${data.length} application (/) commands.`
-    );
+      console.log(
+        'Successfully reloaded application (/) commands. on Production'
+      );
+    } else {
+      throw new Error('NODE_ENV is not set to development or production');
+    }
   } catch (error) {
-    // And of course, make sure you catch and log any errors!
     console.error(error);
   }
+
+  process.exit(0);
 })();

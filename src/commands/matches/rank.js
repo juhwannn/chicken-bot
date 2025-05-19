@@ -10,15 +10,16 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction) {
   try {
+    await interaction.deferReply();
     const userSelect = new UserSelectMenuBuilder()
-      .setCustomId('usersStatistics')
+      .setCustomId('rank')
       .setPlaceholder('Select multiple users.')
       .setMinValues(1)
       .setMaxValues(4);
 
     const row1 = new ActionRowBuilder().addComponents(userSelect);
 
-    await interaction.reply({
+    await interaction.editReply({
       content: 'Select users:',
       components: [row1],
     });

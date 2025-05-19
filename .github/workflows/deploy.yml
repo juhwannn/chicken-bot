@@ -13,7 +13,6 @@ jobs:
       MONGO_URL: ${{ secrets.MONGO_URL }}
       DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
       CLIENT_ID: ${{ secrets.CLIENT_ID }}
-      GUILD_ID: ${{ secrets.GUILD_ID }}
       PUBG_API_KEY: ${{ secrets.PUBG_API_KEY }}
       PUBG_HOST: ${{ secrets.PUBG_HOST }}
 
@@ -58,7 +57,6 @@ jobs:
             MONGODB_URI=${{ secrets.MONGO_URL }}
             DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
             CLIENT_ID=${{ secrets.CLIENT_ID }}
-            GUILD_ID=${{ secrets.GUILD_ID }}
             PUBG_API_KEY=${{ secrets.PUBG_API_KEY }}
             PUBG_HOST=${{ secrets.PUBG_HOST }}
             EOT
